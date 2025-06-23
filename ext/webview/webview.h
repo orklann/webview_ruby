@@ -82,7 +82,7 @@ WEBVIEW_API int webview_get_x(webview_t w);
 #define WEBVIEW_HINT_FIXED 3 // Window size can not be changed by a user
 // Updates native window size. See WEBVIEW_HINT constants.
 WEBVIEW_API void webview_set_size(webview_t w, int width, int height,
-                                  int hints, int margin_top, bool resizable);
+                                  int hints, int margin_top);
 
 // Navigates webview to the given URL. URL may be a data URI, i.e.
 // "data:text/text,<html>...</html>". It is often ok not to url-encode it
@@ -596,6 +596,8 @@ using browser_engine = gtk_webkit_engine;
 
 #define NSWindowTitleHidden 1
 
+#define NSWindowStyleMaskFullScreen (1 << 14)
+
 #define NSApplicationActivationPolicyRegular 0
 
 #define WKUserScriptInjectionTimeAtDocumentStart 0
@@ -772,16 +774,11 @@ public:
         ((id(*)(id, SEL, const char *))objc_msgSend)(
             "NSString"_cls, "stringWithUTF8String:"_sel, title.c_str()));
   }
-  void set_size(int width, int height, int hints, int margin_top, bool resizable) {
-    int style;
-    if (resizable) {
-        style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
-                     NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable ; //| NSWindowStyleMaskFullSizeContentView;
-    } else {
-        style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
-                     NSWindowStyleMaskMiniaturizable ;//| NSWindowStyleMaskFullSizeContentView;
-    }
+  void set_size(int width, int height, int hints, int margin_top) {
 
+    auto style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
+                 NSWindowStyleMaskMiniaturizable;
+    style &= ~NSWindowStyleMaskFullScreen;
     /*
     ((void (*)(id, SEL, unsigned long))objc_msgSend)(
         m_window, "setTitleVisibility:"_sel, NSWindowTitleHidden);
@@ -795,7 +792,7 @@ public:
 
 
     if (hints != WEBVIEW_HINT_FIXED) {
-        //style = style | NSWindowStyleMaskResizable;
+        style = style | NSWindowStyleMaskResizable;
     }
     ((void (*)(id, SEL, unsigned long))objc_msgSend)(
         m_window, "setStyleMask:"_sel, style);
@@ -1402,8 +1399,8 @@ WEBVIEW_API int webview_get_x(webview_t w) {
 }
 
 WEBVIEW_API void webview_set_size(webview_t w, int width, int height,
-                                  int hints, int margin_top, bool resizable) {
-  static_cast<webview::webview *>(w)->set_size(width, height, hints, margin_top, resizable);
+                                  int hints, int margin_top) {
+  static_cast<webview::webview *>(w)->set_size(width, height, hints, margin_top);
 }
 
 WEBVIEW_API void webview_navigate(webview_t w, const char *url) {

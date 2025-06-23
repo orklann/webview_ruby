@@ -14,7 +14,7 @@ module WebviewRuby
   attach_function :webview_set_title, [:pointer, :string], :void
   attach_function :webview_set_pos, [:pointer, :int, :int], :void
   attach_function :webview_set_bg, [:pointer, :double, :double, :double, :double], :void
-  attach_function :webview_set_size, [:pointer, :int, :int, :int, :int, :bool], :void
+  attach_function :webview_set_size, [:pointer, :int, :int, :int, :int], :void
   attach_function :webview_navigate, [:pointer, :string], :void
   attach_function :webview_destroy, [:pointer], :void
   attach_function :webview_bind, [:pointer, :string, :pointer, :pointer], :void
@@ -47,8 +47,8 @@ module WebviewRuby
       WebviewRuby.webview_set_title(@window, title)
     end
 
-    def set_size(width, height, hint=0, margin_top=26, resizable=true)
-      WebviewRuby.webview_set_size(@window, width, height, hint, margin_top, resizable)
+    def set_size(width, height, hint=0, margin_top=26)
+      WebviewRuby.webview_set_size(@window, width, height, hint, margin_top)
     end
 
     def navigate(page)
