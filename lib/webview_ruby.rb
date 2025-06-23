@@ -20,6 +20,7 @@ module WebviewRuby
   attach_function :webview_bind, [:pointer, :string, :pointer, :pointer], :void
   attach_function :webview_eval, [:pointer, :string], :void
   attach_function :webview_init, [:pointer, :string], :void
+  attach_function :webview_get_x, [:pointer], :int
 
   class Webview
     attr_reader :is_running
@@ -28,6 +29,10 @@ module WebviewRuby
       @is_running = false
       @bindings = {}
       @window = WebviewRuby.webview_create(debug ? 1 : 0, nil)
+    end
+
+    def get_x()
+      WebviewRuby.webview_get_x(@window)
     end
 
     def set_pos(x, y)

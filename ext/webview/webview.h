@@ -72,6 +72,9 @@ WEBVIEW_API void webview_set_bg(webview_t w, double r, double g, double b, doubl
 // Update the position of the native window
 WEBVIEW_API void webview_set_pos(webview_t w, int x, int y);
 
+// Get x positionof native window
+WEBVIEW_API int webview_get_x(webview_t w);
+
 // Window size hints
 #define WEBVIEW_HINT_NONE 0  // Width and height are default size
 #define WEBVIEW_HINT_MIN 1   // Width and height are minimum bounds
@@ -609,6 +612,8 @@ id operator"" _str(const char *s, std::size_t) {
 
 class cocoa_wkwebview_engine {
 public:
+  int pos_x = 0;
+  int pos_y = 0;
   cocoa_wkwebview_engine(bool debug, void *window) {
     // Application
     id app = ((id(*)(id, SEL))objc_msgSend)("NSApplication"_cls,
@@ -747,6 +752,11 @@ public:
         m_window, "setFrameOrigin:"_sel,
         CGPointMake(x, y)
         );
+    this->pos_x = x;
+  }
+
+  int get_x() {
+    return this->pos_x;
   }
 
   void set_bg(double r, double g, double b, double a) {
@@ -1385,6 +1395,10 @@ WEBVIEW_API void webview_set_bg(webview_t w, double r, double g, double b, doubl
 
 WEBVIEW_API void webview_set_pos(webview_t w, int x, int y) {
   static_cast<webview::webview *>(w)->set_pos(x, y);
+}
+
+WEBVIEW_API int webview_get_x(webview_t w) {
+  static_cast<webview::webview *>(w)->get_x();
 }
 
 WEBVIEW_API void webview_set_size(webview_t w, int width, int height,
