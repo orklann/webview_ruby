@@ -12,7 +12,8 @@ module WebviewRuby
   attach_function :webview_run, [:pointer], :void
   attach_function :webview_terminate, [:pointer], :void
   attach_function :webview_set_title, [:pointer, :string], :void
-  attach_function :webview_set_size, [:pointer, :int, :int, :int], :void
+  attach_function :webview_set_bg, [:pointer, :double, :double, :double, :double], :void
+  attach_function :webview_set_size, [:pointer, :int, :int, :int, :int, :bool], :void
   attach_function :webview_navigate, [:pointer, :string], :void
   attach_function :webview_destroy, [:pointer], :void
   attach_function :webview_bind, [:pointer, :string, :pointer, :pointer], :void
@@ -28,12 +29,16 @@ module WebviewRuby
       @window = WebviewRuby.webview_create(debug ? 1 : 0, nil)
     end
 
+    def set_bg(r, g, b, a)
+      WebviewRuby.webview_set_bg(@window, r, g, b, a)
+    end
+
     def set_title(title)
       WebviewRuby.webview_set_title(@window, title)
     end
 
-    def set_size(width, height, hint=0)
-      WebviewRuby.webview_set_size(@window, width, height, hint)
+    def set_size(width, height, hint=0, margin_top=26, resizable=true)
+      WebviewRuby.webview_set_size(@window, width, height, hint, margin_top, resizable)
     end
 
     def navigate(page)
@@ -56,7 +61,7 @@ module WebviewRuby
 
     def bind(name, func=nil, &block)
       callback = FFI::Function.new(:void, [:string, :string, :pointer]) do |seq, req, arg|
-        begin 
+        begin
           params = JSON.parse(req)
           if func
             func(*params)

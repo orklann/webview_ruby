@@ -66,6 +66,9 @@ WEBVIEW_API void *webview_get_window(webview_t w);
 // Updates the title of the native window. Must be called from the UI thread.
 WEBVIEW_API void webview_set_title(webview_t w, const char *title);
 
+// Update the background color of the native window
+WEBVIEW_API void webview_set_bg(webview_t w, double r, double g, double b, double a);
+
 // Window size hints
 #define WEBVIEW_HINT_NONE 0  // Width and height are default size
 #define WEBVIEW_HINT_MIN 1   // Width and height are minimum bounds
@@ -73,7 +76,7 @@ WEBVIEW_API void webview_set_title(webview_t w, const char *title);
 #define WEBVIEW_HINT_FIXED 3 // Window size can not be changed by a user
 // Updates native window size. See WEBVIEW_HINT constants.
 WEBVIEW_API void webview_set_size(webview_t w, int width, int height,
-                                  int hints);
+                                  int hints, int margin_top, bool resizable);
 
 // Navigates webview to the given URL. URL may be a data URI, i.e.
 // "data:text/text,<html>...</html>". It is often ok not to url-encode it
@@ -705,6 +708,7 @@ public:
                         },
                       };
                      )script");
+
     ((void (*)(id, SEL, id))objc_msgSend)(m_window, "setContentView:"_sel,
                                           m_webview);
     ((void (*)(id, SEL, id))objc_msgSend)(m_window, "makeKeyAndOrderFront:"_sel,
@@ -734,25 +738,45 @@ public:
                        delete f;
                      }));
   }
+
+  void set_bg(double r, double g, double b, double a) {
+    ((void (*)(id, SEL, id))objc_msgSend)(
+        m_window, "setBackgroundColor:"_sel,
+        ((id(*)(id, SEL, double, double, double, double))objc_msgSend)(
+            "NSColor"_cls, "colorWithRed:green:blue:alpha:"_sel, r, g, b, a));
+  }
+
   void set_title(const std::string title) {
     ((void (*)(id, SEL, id))objc_msgSend)(
         m_window, "setTitle:"_sel,
         ((id(*)(id, SEL, const char *))objc_msgSend)(
             "NSString"_cls, "stringWithUTF8String:"_sel, title.c_str()));
   }
-  void set_size(int width, int height, int hints) {
-    auto style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
-                 NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable | NSWindowStyleMaskFullSizeContentView;
+  void set_size(int width, int height, int hints, int margin_top, bool resizable) {
+    int style;
+    if (resizable) {
+        style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
+                     NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable | NSWindowStyleMaskFullSizeContentView;
+    } else {
+        printf("not resizable!!!\n");
+        style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
+                     NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskFullSizeContentView;
+    }
 
-
+    /*
     ((void (*)(id, SEL, unsigned long))objc_msgSend)(
         m_window, "setTitleVisibility:"_sel, NSWindowTitleHidden);
+    */
 
     ((void (*)(id, SEL, unsigned long))objc_msgSend)(
         m_window, "setTitlebarAppearsTransparent:"_sel, 1);
 
+    ((void (*)(id, SEL, unsigned long))objc_msgSend)(
+        m_window, "setMovableByWindowBackground:"_sel, 1);
+
+
     if (hints != WEBVIEW_HINT_FIXED) {
-      style = style | NSWindowStyleMaskResizable;
+        //style = style | NSWindowStyleMaskResizable;
     }
     ((void (*)(id, SEL, unsigned long))objc_msgSend)(
         m_window, "setStyleMask:"_sel, style);
@@ -767,6 +791,11 @@ public:
       ((void (*)(id, SEL, CGRect, BOOL, BOOL))objc_msgSend)(
           m_window, "setFrame:display:animate:"_sel,
           CGRectMake(0, 0, width, height), 1, 0);
+
+      ((void (*)(id, SEL, CGRect))objc_msgSend)(
+          m_webview, "setFrame:"_sel,
+          CGRectMake(0, 0, width, height - margin_top));
+
     }
     ((void (*)(id, SEL))objc_msgSend)(m_window, "center"_sel);
   }
@@ -1341,9 +1370,13 @@ WEBVIEW_API void webview_set_title(webview_t w, const char *title) {
   static_cast<webview::webview *>(w)->set_title(title);
 }
 
+WEBVIEW_API void webview_set_bg(webview_t w, double r, double g, double b, double a) {
+  static_cast<webview::webview *>(w)->set_bg(r, g, b, a);
+}
+
 WEBVIEW_API void webview_set_size(webview_t w, int width, int height,
-                                  int hints) {
-  static_cast<webview::webview *>(w)->set_size(width, height, hints);
+                                  int hints, int margin_top, bool resizable) {
+  static_cast<webview::webview *>(w)->set_size(width, height, hints, margin_top, resizable);
 }
 
 WEBVIEW_API void webview_navigate(webview_t w, const char *url) {
