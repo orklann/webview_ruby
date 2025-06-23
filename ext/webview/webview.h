@@ -776,10 +776,10 @@ public:
     int style;
     if (resizable) {
         style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
-                     NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable | NSWindowStyleMaskFullSizeContentView;
+                     NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable ; //| NSWindowStyleMaskFullSizeContentView;
     } else {
         style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
-                     NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskFullSizeContentView;
+                     NSWindowStyleMaskMiniaturizable ;//| NSWindowStyleMaskFullSizeContentView;
     }
 
     /*
