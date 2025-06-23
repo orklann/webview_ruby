@@ -69,6 +69,9 @@ WEBVIEW_API void webview_set_title(webview_t w, const char *title);
 // Update the background color of the native window
 WEBVIEW_API void webview_set_bg(webview_t w, double r, double g, double b, double a);
 
+// Update the position of the native window
+WEBVIEW_API void webview_set_pos(webview_t w, int x, int y);
+
 // Window size hints
 #define WEBVIEW_HINT_NONE 0  // Width and height are default size
 #define WEBVIEW_HINT_MIN 1   // Width and height are minimum bounds
@@ -739,6 +742,13 @@ public:
                      }));
   }
 
+  void set_pos(int x, int y) {
+    ((void (*)(id, SEL, CGPoint))objc_msgSend)(
+        m_window, "setFrameOrigin:"_sel,
+        CGPointMake(x, y)
+        );
+  }
+
   void set_bg(double r, double g, double b, double a) {
     ((void (*)(id, SEL, id))objc_msgSend)(
         m_window, "setBackgroundColor:"_sel,
@@ -758,7 +768,6 @@ public:
         style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
                      NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable | NSWindowStyleMaskFullSizeContentView;
     } else {
-        printf("not resizable!!!\n");
         style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
                      NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskFullSizeContentView;
     }
@@ -1372,6 +1381,10 @@ WEBVIEW_API void webview_set_title(webview_t w, const char *title) {
 
 WEBVIEW_API void webview_set_bg(webview_t w, double r, double g, double b, double a) {
   static_cast<webview::webview *>(w)->set_bg(r, g, b, a);
+}
+
+WEBVIEW_API void webview_set_pos(webview_t w, int x, int y) {
+  static_cast<webview::webview *>(w)->set_pos(x, y);
 }
 
 WEBVIEW_API void webview_set_size(webview_t w, int width, int height,
