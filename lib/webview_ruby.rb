@@ -12,6 +12,7 @@ module WebviewRuby
   attach_function :webview_run, [:pointer], :void
   attach_function :webview_terminate, [:pointer], :void
   attach_function :webview_set_title, [:pointer, :string], :void
+  attach_function :webview_show, [:pointer, :int], :void
   attach_function :webview_hide_from_dock, [:pointer, :int], :void
   attach_function :webview_set_pos, [:pointer, :int, :int], :void
   attach_function :webview_set_bg, [:pointer, :double, :double, :double, :double], :void
@@ -30,6 +31,14 @@ module WebviewRuby
       @is_running = false
       @bindings = {}
       @window = WebviewRuby.webview_create(debug ? 1 : 0, nil)
+    end
+
+    def show(yes)
+      if yes
+        WebviewRuby.webview_show(@window, 1)
+      else
+        WebviewRuby.webview_show(@window, 0)
+      end
     end
 
     def hide_from_dock(hide)

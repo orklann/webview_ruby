@@ -69,6 +69,9 @@ WEBVIEW_API void webview_set_title(webview_t w, const char *title);
 // Hide from dock
 WEBVIEW_API void webview_hide_from_dock(webview_t w, int hide);
 
+// Show/hide webview window
+WEBVIEW_API void webview_show(webview_t w, int show);
+
 // Update the background color of the native window
 WEBVIEW_API void webview_set_bg(webview_t w, double r, double g, double b, double a);
 
@@ -631,7 +634,7 @@ public:
         objc_allocateClassPair((Class) "NSResponder"_cls, "AppDelegate", 0);
     class_addProtocol(cls, objc_getProtocol("NSTouchBarProvider"));
     class_addMethod(cls, "applicationShouldTerminateAfterLastWindowClosed:"_sel,
-                    (IMP)(+[](id, SEL, id) -> BOOL { return 1; }), "c@:@");
+                    (IMP)(+[](id, SEL, id) -> BOOL { return 0; }), "c@:@");
     class_addMethod(cls, "userContentController:didReceiveScriptMessage:"_sel,
                     (IMP)(+[](id self, SEL, id, id msg) {
                       auto w =
@@ -782,6 +785,18 @@ public:
 
   void hide_from_dock(int hide) {
     this->dock_hide = hide;
+  }
+
+  void show(int yes) {
+    if(yes == 0) {
+        ((void (*)(id, SEL, id))objc_msgSend)(
+            m_window, "orderOut:"_sel,
+            nullptr);
+    } else {
+        ((void (*)(id, SEL, id))objc_msgSend)(
+            m_window, "makeKeyAndOrderFront:"_sel,
+            nullptr);
+    }
   }
 
   void set_title(const std::string title) {
@@ -1405,6 +1420,10 @@ WEBVIEW_API void webview_set_title(webview_t w, const char *title) {
 
 WEBVIEW_API void webview_hide_from_dock(webview_t w, int hide) {
   static_cast<webview::webview *>(w)->hide_from_dock(hide);
+}
+
+WEBVIEW_API void webview_show(webview_t w, int show) {
+  static_cast<webview::webview *>(w)->show(show);
 }
 
 WEBVIEW_API void webview_set_bg(webview_t w, double r, double g, double b, double a) {
