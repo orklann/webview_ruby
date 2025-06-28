@@ -66,6 +66,9 @@ WEBVIEW_API void *webview_get_window(webview_t w);
 // Updates the title of the native window. Must be called from the UI thread.
 WEBVIEW_API void webview_set_title(webview_t w, const char *title);
 
+// Hide from dock
+WEBVIEW_API void webview_hide_from_dock(webview_t w, int hide);
+
 // Update the background color of the native window
 WEBVIEW_API void webview_set_bg(webview_t w, double r, double g, double b, double a);
 
@@ -734,6 +737,15 @@ public:
   void run() {
     id app = ((id(*)(id, SEL))objc_msgSend)("NSApplication"_cls,
                                             "sharedApplication"_sel);
+
+#define NSApplicationActivationPolicyAccessory 1
+    if (this->dock_hide) {
+        dispatch([&]() {
+          ((void (*)(id, SEL, BOOL))objc_msgSend)(
+              app, "setActivationPolicy:"_sel, NSApplicationActivationPolicyAccessory);
+        });
+    }
+
     dispatch([&]() {
       ((void (*)(id, SEL, BOOL))objc_msgSend)(
           app, "activateIgnoringOtherApps:"_sel, 1);
@@ -766,6 +778,10 @@ public:
         m_window, "setBackgroundColor:"_sel,
         ((id(*)(id, SEL, double, double, double, double))objc_msgSend)(
             "NSColor"_cls, "colorWithRed:green:blue:alpha:"_sel, r, g, b, a));
+  }
+
+  void hide_from_dock(int hide) {
+    this->dock_hide = hide;
   }
 
   void set_title(const std::string title) {
@@ -852,6 +868,7 @@ private:
   id m_window;
   id m_webview;
   id m_manager;
+  int dock_hide = 0;
 };
 
 using browser_engine = cocoa_wkwebview_engine;
@@ -1384,6 +1401,10 @@ WEBVIEW_API void *webview_get_window(webview_t w) {
 
 WEBVIEW_API void webview_set_title(webview_t w, const char *title) {
   static_cast<webview::webview *>(w)->set_title(title);
+}
+
+WEBVIEW_API void webview_hide_from_dock(webview_t w, int hide) {
+  static_cast<webview::webview *>(w)->hide_from_dock(hide);
 }
 
 WEBVIEW_API void webview_set_bg(webview_t w, double r, double g, double b, double a) {
